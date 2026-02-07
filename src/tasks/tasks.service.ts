@@ -17,4 +17,20 @@ export class TasksService {
   getTasks(): Task[] {
     return this.tasks;
   }
+
+  getTaskById(id: string): Task | null {
+    return this.tasks.find((task) => task.id === id) || null;
+  }
+
+  createTask(title: string, description: string): Task {
+    const newTask: Task = {
+      id: (this.tasks.length + 1).toString(),
+      title,
+      description,
+      status: TaskStatus.OPEN,
+      created_at: new Date(),
+    };
+    this.tasks.push(newTask);
+    return newTask;
+  }
 }
