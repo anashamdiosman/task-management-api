@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateTaskDto } from './dto/create-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Task } from './tasks.entity';
+import { Task } from '../entities/tasks.entity';
 import { Repository } from 'typeorm';
-import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskStatus } from './tasks-enums';
-// import { FilterTasksDto } from './dto/tasks-filter.dto';
+import { TaskStatus } from '../enums/tasks-enums';
+import {
+  CreateTaskDto,
+  UpdateTaskDto,
+  FilterTasksDto,
+} from 'src/dtos/tasks.dto';
 
 @Injectable()
 export class TasksService {
@@ -38,12 +40,28 @@ export class TasksService {
     id: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
-    const task = await this.getTaskById(id);
-    Object.assign(task, updateTaskDto);
-    return await this.tasksRepository.save(task);
+    await this.tasksRepository.update(id, updateTaskDto);
+    return this.getTaskById(id);
   }
 
-  async getAllTasks(): Promise<Task[]> {
-    return await this.tasksRepository.find({});
+  async getAllTasks(filterDto: FilterTasksDto): Promise<Task[]> {
+    const { status, search } = filterDto;
+
+    // tasks is only alias and not the real table name
+    const query = this.tasksRepository.createQueryBuilder('tasks');
+
+    // here we have to use the alias name provided earlier especially in JOINS
+    if (status) query.andWhere('tasks.status = :status', { status });
+    if (search)
+      query.andWhere(
+        // here we have to use the alias name provided earlier especially in JOINS
+        'tasks.title LIKE :search OR tasks.description LIKE :search',
+        {
+          search: `%${search}%`,
+        },
+      );
+
+    const tasks = await query.getMany();
+    return tasks;
   }
 }

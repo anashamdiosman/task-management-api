@@ -8,6 +8,8 @@ import {
 
 @Entity('Tasks')
 export class Task {
+  static tableName = 'Tasks';
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -26,3 +28,5 @@ export class Task {
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 }
+
+export const tableName = 'Tasks';
