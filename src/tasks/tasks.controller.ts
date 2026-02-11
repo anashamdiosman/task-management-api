@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {
@@ -18,9 +19,11 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ApiStandardResponses } from 'src/shared/swagger/swagger-helpers';
 import { plainToInstance } from 'class-transformer';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Tasks')
 @Controller('tasks')
+@UseGuards(AuthGuard()) // Apply authentication guard to all routes in this controller
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 

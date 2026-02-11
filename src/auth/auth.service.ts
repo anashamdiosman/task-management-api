@@ -11,6 +11,7 @@ import { LoginDto, SignupDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { JwtPayload } from './interface';
 
 @Injectable()
 export class AuthService {
@@ -33,8 +34,7 @@ export class AuthService {
     return await bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  generateJwtToken(username: string): string {
-    const payload = { username };
+  generateJwtToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload);
   }
 
@@ -49,7 +49,9 @@ export class AuthService {
 
     try {
       const savedUser = await this.usersRepository.save(user);
-      return { accessToken: this.generateJwtToken(savedUser.username) };
+      return {
+        accessToken: this.generateJwtToken({ username: savedUser.username }),
+      };
     } catch (e) {
       const error = e as { code: string };
       if (typeof error === 'object' && error !== null && 'code' in error) {
@@ -72,6 +74,6 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) throw new NotFoundException('Invalid Credentials');
-    return { accessToken: this.generateJwtToken(user.username) };
+    return { accessToken: this.generateJwtToken({ username: user.username }) };
   }
 }
