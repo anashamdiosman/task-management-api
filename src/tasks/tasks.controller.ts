@@ -17,6 +17,7 @@ import {
 } from './dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiStandardResponses } from 'src/shared/swagger/swagger-helpers';
+import { plainToInstance } from 'class-transformer';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -30,9 +31,13 @@ export class TasksController {
     isArray: true,
     queryDto: FilterTasksDto,
   })
-  getAllTasks(@Query() filterDto: FilterTasksDto): Promise<TaskResponseDto[]> {
-    const { status, search } = filterDto;
-    return this.tasksService.getAllTasks({ status, search });
+  async getAllTasks(
+    @Query() filterDto: FilterTasksDto,
+  ): Promise<TaskResponseDto[]> {
+    const tasks = await this.tasksService.getAllTasks(filterDto);
+    return plainToInstance(TaskResponseDto, tasks, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // ---------------- GET TASK BY ID ----------------
@@ -41,8 +46,11 @@ export class TasksController {
     summary: 'Get a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
   })
-  getTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
-    return this.tasksService.getTaskById(id);
+  async getTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
+    const task = await this.tasksService.getTaskById(id);
+    return plainToInstance(TaskResponseDto, task, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // ---------------- CREATE TASK ----------------
@@ -52,8 +60,11 @@ export class TasksController {
     status: 201,
     auth: true,
   })
-  createTask(@Body() dto: CreateTaskDto): Promise<TaskResponseDto> {
-    return this.tasksService.createTask(dto);
+  async createTask(@Body() dto: CreateTaskDto): Promise<TaskResponseDto> {
+    const task = await this.tasksService.createTask(dto);
+    return plainToInstance(TaskResponseDto, task, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // ---------------- UPDATE TASK ----------------
@@ -62,11 +73,14 @@ export class TasksController {
     summary: 'Update a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
   })
-  updateTaskById(
+  async updateTaskById(
     @Body() updateDto: UpdateTaskDto,
     @Param('id') id: string,
   ): Promise<TaskResponseDto> {
-    return this.tasksService.updateTaskById(id, updateDto);
+    const task = await this.tasksService.updateTaskById(id, updateDto);
+    return plainToInstance(TaskResponseDto, task, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // ---------------- UPDATE TASK STATUS ----------------
@@ -75,11 +89,16 @@ export class TasksController {
     summary: "Update a task's status",
     param: { name: 'id', type: String, description: 'Task ID' },
   })
-  updateTaskStatusById(
+  async updateTaskStatusById(
     @Body() updateDto: UpdateTaskDto,
     @Param('id') id: string,
   ): Promise<TaskResponseDto> {
-    return this.tasksService.updateTaskById(id, { status: updateDto.status });
+    const task = await this.tasksService.updateTaskById(id, {
+      status: updateDto.status,
+    });
+    return plainToInstance(TaskResponseDto, task, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // ---------------- DELETE TASK ----------------
@@ -88,7 +107,10 @@ export class TasksController {
     summary: 'Delete a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
   })
-  deleteTaskById(@Param('id') id: string) {
-    return this.tasksService.deleteTaskById(id);
+  async deleteTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
+    const task = await this.tasksService.deleteTaskById(id);
+    return plainToInstance(TaskResponseDto, task, {
+      excludeExtraneousValues: true,
+    });
   }
 }
