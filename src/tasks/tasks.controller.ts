@@ -9,11 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import {
-  CreateTaskDto,
-  FilterTasksDto,
-  UpdateTaskDto,
-} from '../dtos/tasks.dto';
+import { CreateTaskDto, FilterTasksDto, UpdateTaskDto } from './dto';
 import { Task } from 'src/entities/tasks.entity';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
