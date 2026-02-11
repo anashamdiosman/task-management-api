@@ -30,6 +30,7 @@ export class TasksController {
     summary: 'Get all tasks',
     isArray: true,
     queryDto: FilterTasksDto,
+    actionType: 'read',
   })
   async getAllTasks(
     @Query() filterDto: FilterTasksDto,
@@ -45,6 +46,7 @@ export class TasksController {
   @ApiStandardResponses(TaskResponseDto, {
     summary: 'Get a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
+    actionType: 'read',
   })
   async getTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
     const task = await this.tasksService.getTaskById(id);
@@ -59,6 +61,7 @@ export class TasksController {
     summary: 'Create a new task',
     status: 201,
     auth: true,
+    actionType: 'create',
   })
   async createTask(@Body() dto: CreateTaskDto): Promise<TaskResponseDto> {
     const task = await this.tasksService.createTask(dto);
@@ -72,6 +75,7 @@ export class TasksController {
   @ApiStandardResponses(TaskResponseDto, {
     summary: 'Update a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
+    actionType: 'update',
   })
   async updateTaskById(
     @Body() updateDto: UpdateTaskDto,
@@ -88,6 +92,7 @@ export class TasksController {
   @ApiStandardResponses(TaskResponseDto, {
     summary: "Update a task's status",
     param: { name: 'id', type: String, description: 'Task ID' },
+    actionType: 'update',
   })
   async updateTaskStatusById(
     @Body() updateDto: UpdateTaskDto,
@@ -106,6 +111,7 @@ export class TasksController {
   @ApiStandardResponses(TaskResponseDto, {
     summary: 'Delete a task by ID',
     param: { name: 'id', type: String, description: 'Task ID' },
+    actionType: 'delete',
   })
   async deleteTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
     const task = await this.tasksService.deleteTaskById(id);
