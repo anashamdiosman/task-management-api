@@ -9,57 +9,85 @@ import {
   Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, FilterTasksDto, UpdateTaskDto } from './dto';
-import { Task } from 'src/entities/tasks.entity';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  CreateTaskDto,
+  FilterTasksDto,
+  UpdateTaskDto,
+  TaskResponseDto,
+} from './dto';
+import { ApiTags } from '@nestjs/swagger';
+import { ApiStandardResponses } from 'src/shared/swagger/swagger-helpers';
 
-@ApiTags('tasks')
+@ApiTags('Tasks')
 @Controller('tasks')
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 
+  // ---------------- GET ALL TASKS ----------------
   @Get()
-  @ApiOperation({ summary: 'Get all tasks' })
-  getAllTasks(@Query() filterDto: FilterTasksDto): Promise<Task[]> {
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: 'Get all tasks',
+    isArray: true,
+    queryDto: FilterTasksDto,
+  })
+  getAllTasks(@Query() filterDto: FilterTasksDto): Promise<TaskResponseDto[]> {
     const { status, search } = filterDto;
     return this.tasksService.getAllTasks({ status, search });
   }
 
+  // ---------------- GET TASK BY ID ----------------
   @Get(':id')
-  @ApiOperation({ summary: 'Get Task by id' })
-  getTaskById(@Param('id') id: string): Promise<Task> {
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: 'Get a task by ID',
+    param: { name: 'id', type: String, description: 'Task ID' },
+  })
+  getTaskById(@Param('id') id: string): Promise<TaskResponseDto> {
     return this.tasksService.getTaskById(id);
   }
 
+  // ---------------- CREATE TASK ----------------
   @Post()
-  @ApiOperation({ summary: 'Create a new task' })
-  createTask(@Body() dto: CreateTaskDto): Promise<Task> {
-    const { description, title } = dto;
-    return this.tasksService.createTask({ description, title });
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: 'Create a new task',
+    status: 201,
+    auth: true,
+  })
+  createTask(@Body() dto: CreateTaskDto): Promise<TaskResponseDto> {
+    return this.tasksService.createTask(dto);
   }
 
+  // ---------------- UPDATE TASK ----------------
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a task' })
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: 'Update a task by ID',
+    param: { name: 'id', type: String, description: 'Task ID' },
+  })
   updateTaskById(
     @Body() updateDto: UpdateTaskDto,
     @Param('id') id: string,
-  ): Promise<Task> {
-    const { title, description } = updateDto;
-    return this.tasksService.updateTaskById(id, { title, description });
+  ): Promise<TaskResponseDto> {
+    return this.tasksService.updateTaskById(id, updateDto);
   }
 
+  // ---------------- UPDATE TASK STATUS ----------------
   @Patch(':id/status')
-  @ApiOperation({ summary: "Update a task's status" })
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: "Update a task's status",
+    param: { name: 'id', type: String, description: 'Task ID' },
+  })
   updateTaskStatusById(
     @Body() updateDto: UpdateTaskDto,
     @Param('id') id: string,
-  ): Promise<Task> {
-    const { status } = updateDto;
-    return this.tasksService.updateTaskById(id, { status });
+  ): Promise<TaskResponseDto> {
+    return this.tasksService.updateTaskById(id, { status: updateDto.status });
   }
 
+  // ---------------- DELETE TASK ----------------
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a task' })
+  @ApiStandardResponses(TaskResponseDto, {
+    summary: 'Delete a task by ID',
+    param: { name: 'id', type: String, description: 'Task ID' },
+  })
   deleteTaskById(@Param('id') id: string) {
     return this.tasksService.deleteTaskById(id);
   }
