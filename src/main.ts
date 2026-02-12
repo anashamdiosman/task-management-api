@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  const logger = new Logger();
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
@@ -32,6 +33,9 @@ async function bootstrap() {
 
   // Start the server
   await app.listen(process.env.PORT ?? 3000);
+  logger.log(
+    `Server is running on http://localhost:${process.env.PORT ?? 3000}`,
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
