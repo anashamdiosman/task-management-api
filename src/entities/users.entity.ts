@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Task } from './tasks.entity';
 
 @Entity('Users')
 export class User {
@@ -19,4 +21,9 @@ export class User {
   // Automatically stores the creation date
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  @OneToMany(() => Task, (task) => task.user, {
+    eager: false,
+  })
+  tasks: Task[];
 }

@@ -1,10 +1,22 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { LoginDto, SignupDto } from './dto';
+import type { Response } from 'express';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { LoginDto, SignupDto, UserResponseDto } from './dto';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiStandardResponses } from 'src/shared/swagger/swagger-helpers';
+import { AuthDto } from './dto/auth.dto';
+import { User } from 'src/entities/users.entity';
+import { GetUser } from './get-user.decorator';
 import { plainToInstance } from 'class-transformer';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -13,25 +25,56 @@ export class AuthController {
 
   // ---------------- SIGNUP ----------------
   @Post('/signup')
-  @ApiStandardResponses(AuthResponseDto, {
+  @ApiStandardResponses(undefined, {
     summary: 'Create a new user',
     status: 201, // 201 Created
     actionType: 'create',
   })
-  async signup(@Body() dto: SignupDto): Promise<AuthResponseDto> {
+  async signup(
+    @Body() dto: SignupDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const user = await this.authService.createUser(dto);
-    return plainToInstance(AuthResponseDto, user);
+    res.cookie('access_token', user.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 1000 * 60 * 60,
+    });
   }
 
   // ---------------- LOGIN ----------------
   @Post('/login')
-  @ApiStandardResponses(AuthResponseDto, {
+  @HttpCode(200)
+  @ApiStandardResponses(AuthDto, {
     summary: 'Login',
     actionType: 'login',
   })
-  async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const user = await this.authService.login(dto);
-    return plainToInstance(AuthResponseDto, user, {
+
+    res.cookie('access_token', user.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 1000 * 60 * 60,
+    });
+  }
+
+  @Get('/user')
+  @HttpCode(200)
+  @ApiStandardResponses(UserResponseDto, {
+    summary: 'Get user details',
+    actionType: 'read',
+  })
+  @UseGuards(AuthGuard('jwt')) // Apply authentication guard to all routes in this controller
+  getUser(@GetUser() user: User): UserResponseDto {
+    return plainToInstance(UserResponseDto, user, {
       excludeExtraneousValues: true,
     });
   }

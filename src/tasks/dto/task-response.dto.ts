@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { UserResponseDto } from 'src/auth/dto';
 
 export class TaskResponseDto {
   @ApiProperty()
@@ -17,4 +18,9 @@ export class TaskResponseDto {
   @ApiProperty()
   @Expose()
   status: string;
+
+  @ApiProperty({ type: () => UserResponseDto, required: false })
+  @Expose()
+  @Type(() => UserResponseDto)
+  user?: UserResponseDto;
 }

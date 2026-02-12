@@ -10,7 +10,7 @@ import { User } from '../entities/users.entity';
 import { LoginDto, SignupDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthDto } from './dto/auth.dto';
 import { JwtPayload } from './interface';
 
 @Injectable()
@@ -39,7 +39,7 @@ export class AuthService {
   }
 
   // ---------------- SIGNUP ----------------
-  async createUser(userDto: SignupDto): Promise<AuthResponseDto> {
+  async createUser(userDto: SignupDto): Promise<AuthDto> {
     const hashedPassword = await this.hashPassword(userDto.password);
 
     const user = this.usersRepository.create({
@@ -64,7 +64,7 @@ export class AuthService {
   }
 
   // ---------------- LOGIN ----------------
-  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(loginDto: LoginDto): Promise<AuthDto> {
     const { username, password } = loginDto;
 
     const user = await this.usersRepository.findOneBy({ username });

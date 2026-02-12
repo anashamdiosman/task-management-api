@@ -4,6 +4,7 @@ import { Task } from '../entities/tasks.entity';
 import { Repository } from 'typeorm';
 import { TaskStatus } from './enums/tasks-status.enum';
 import { CreateTaskDto, UpdateTaskDto, FilterTasksDto } from './dto';
+import { User } from 'src/entities/users.entity';
 
 @Injectable()
 export class TasksService {
@@ -11,51 +12,54 @@ export class TasksService {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
   ) {}
-  async createTask(dto: CreateTaskDto): Promise<Task> {
+  async createTask(dto: CreateTaskDto, user: User): Promise<Task> {
     const task = this.tasksRepository.create({
       ...dto,
       status: TaskStatus.OPEN,
+      user,
     });
     return await this.tasksRepository.save(task);
   }
 
-  async getTaskById(id: string): Promise<Task> {
-    const task = await this.tasksRepository.findOneBy({ id });
+  async getTaskById(id: string, user: User): Promise<Task> {
+    const task = await this.tasksRepository.findOneBy({
+      id,
+      user: { id: user.id },
+    });
     if (!task) throw new NotFoundException(`Task with id ${id} not found`);
     return task;
   }
 
-  async deleteTaskById(id: string): Promise<void> {
-    const result = await this.tasksRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Task with id ${id} not found`);
-    }
+  async deleteTaskById(id: string, user: User): Promise<void> {
+    const task = await this.getTaskById(id, user); // fetch and ensure ownership
+    await this.tasksRepository.remove(task); // remove the task
   }
 
   async updateTaskById(
     id: string,
     updateTaskDto: UpdateTaskDto,
+    user: User,
   ): Promise<Task> {
-    await this.tasksRepository.update(id, updateTaskDto);
-    return this.getTaskById(id);
+    const task = await this.getTaskById(id, user); // fetch and ensure ownership
+    Object.assign(task, updateTaskDto); // update fields
+    return this.tasksRepository.save(task); // save changes
   }
 
-  async getAllTasks(filterDto: FilterTasksDto): Promise<Task[]> {
+  async getAllTasks(filterDto: FilterTasksDto, user: User): Promise<Task[]> {
     const { status, search } = filterDto;
 
-    // tasks is only alias and not the real table name
     const query = this.tasksRepository.createQueryBuilder('tasks');
 
-    // here we have to use the alias name provided earlier especially in JOINS
+    query.where('tasks.userId = :userId', { userId: user.id });
+
     if (status) query.andWhere('tasks.status = :status', { status });
     if (search)
       query.andWhere(
-        // here we have to use the alias name provided earlier especially in JOINS
-        'tasks.title LIKE :search OR tasks.description LIKE :search',
-        {
-          search: `%${search}%`,
-        },
+        '(LOWER(tasks.title) LIKE LOWER(:search) OR LOWER(tasks.description) LIKE LOWER(:search))',
+        { search: `%${search}%` },
       );
+
+    query.leftJoinAndSelect('tasks.user', 'user');
 
     const tasks = await query.getMany();
     return tasks;

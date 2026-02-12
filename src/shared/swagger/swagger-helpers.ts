@@ -38,7 +38,7 @@ export interface ApiHelperOptions {
  * Maximal Swagger helper with dynamic error examples
  */
 export function ApiStandardResponses<T>(
-  successDto: ClassConstructor<T>,
+  successDto?: ClassConstructor<T>,
   options: ApiHelperOptions = { actionType: 'read' },
 ) {
   const {
@@ -52,26 +52,15 @@ export function ApiStandardResponses<T>(
     actionType,
   } = options;
 
+  // Summary
   const decorators: MethodDecorator[] = [];
 
-  // Summary
   if (summary) decorators.push(ApiOperation({ summary }));
-
-  // Auth
   if (auth) decorators.push(ApiBearerAuth());
-
-  // Extra models
-  if (extraModels && extraModels.length > 0) {
+  if (extraModels && extraModels.length > 0)
     decorators.push(ApiExtraModels(...extraModels));
-  }
-
-  // Query DTO
-  if (queryDto) {
-    decorators.push(ApiQuery({ type: queryDto, required: false }));
-  }
-
-  // Single path param
-  if (param) {
+  if (queryDto) decorators.push(ApiQuery({ type: queryDto, required: false }));
+  if (param)
     decorators.push(
       ApiParam({
         name: param.name,
@@ -79,13 +68,24 @@ export function ApiStandardResponses<T>(
         description: param.description,
       }),
     );
-  }
 
   // Success response
   if (status === 200) {
-    decorators.push(ApiOkResponse({ type: successDto, isArray }));
+    decorators.push(
+      successDto
+        ? ApiOkResponse({ type: successDto, isArray })
+        : ApiOkResponse({ description: 'Success', schema: { type: 'null' } }),
+    );
   } else {
-    decorators.push(ApiResponse({ status, type: successDto, isArray }));
+    decorators.push(
+      successDto
+        ? ApiResponse({ status, type: successDto, isArray })
+        : ApiResponse({
+            status,
+            description: 'Success',
+            schema: { type: 'null' },
+          }),
+    );
   }
 
   // Conflict errors for create/update/all

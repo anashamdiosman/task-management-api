@@ -5,6 +5,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from 'src/entities/users.entity';
 import { Repository } from 'typeorm';
 import { JwtPayload } from './interface';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,7 +15,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       secretOrKey: process.env.JWT_SECRET!,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request | undefined): string | null => {
+          if (!req) return null;
+
+          const cookies = req.cookies as Record<string, string> | undefined;
+
+          if (!cookies) return null;
+
+          return cookies['access_token'] ?? null;
+        },
+      ]),
     });
   }
 
@@ -26,6 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }
+
     return user;
   }
 }
