@@ -17,11 +17,15 @@ import { User } from 'src/entities/users.entity';
 import { GetUser } from './get-user.decorator';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   // ---------------- SIGNUP ----------------
   @Post('/signup')
@@ -37,7 +41,7 @@ export class AuthController {
     const user = await this.authService.createUser(dto);
     res.cookie('access_token', user.accessToken, {
       httpOnly: true,
-      secure: process.env.STAGE === 'prod',
+      secure: this.configService.get<string>('STAGE') === 'prod',
       sameSite: 'strict',
       path: '/',
       maxAge: 1000 * 60 * 60,
@@ -59,7 +63,7 @@ export class AuthController {
 
     res.cookie('access_token', user.accessToken, {
       httpOnly: true,
-      secure: process.env.STAGE === 'prod',
+      secure: this.configService.get<string>('STAGE') === 'prod',
       sameSite: 'strict',
       path: '/',
       maxAge: 1000 * 60 * 60,
