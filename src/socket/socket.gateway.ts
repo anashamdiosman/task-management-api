@@ -10,15 +10,13 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({
+@WebSocketGateway(8001, {
   cors: {
     origin: true,
     credentials: true,
   },
 })
-export class SocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(SocketGateway.name);
 
   @WebSocketServer()
@@ -53,9 +51,10 @@ export class SocketGateway
   }
 
   @SubscribeMessage('broadcast')
-  handleBroadcast(
-    @MessageBody() payload: unknown,
-  ): { event: string; data: unknown } {
+  handleBroadcast(@MessageBody() payload: unknown): {
+    event: string;
+    data: unknown;
+  } {
     this.server.emit('broadcast', payload);
 
     return {
