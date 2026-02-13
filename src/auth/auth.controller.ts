@@ -37,7 +37,7 @@ export class AuthController {
     const user = await this.authService.createUser(dto);
     res.cookie('access_token', user.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.STAGE === 'prod',
       sameSite: 'strict',
       path: '/',
       maxAge: 1000 * 60 * 60,
@@ -59,7 +59,7 @@ export class AuthController {
 
     res.cookie('access_token', user.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.STAGE === 'prod',
       sameSite: 'strict',
       path: '/',
       maxAge: 1000 * 60 * 60,

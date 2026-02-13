@@ -8,7 +8,7 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
+      envFilePath: [`.env.stage.${process.env.STAGE || 'dev'}`],
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
@@ -19,7 +19,7 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production' ? true : false,
+      synchronize: process.env.STAGE !== 'prod' ? true : false,
     }),
     TasksModule,
     AuthModule,

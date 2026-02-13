@@ -19,7 +19,7 @@ async function bootstrap() {
   );
 
   // Swagger Configuration
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.STAGE !== 'prod') {
     const config = new DocumentBuilder()
       .setTitle('Task Management API')
       .setDescription('API documentation for the Task Management system')
